@@ -524,6 +524,7 @@ function handle_(e) {
         }
       }
       PropertiesService.getScriptProperties().deleteProperty(key);
+      clearNotification_(key);   // do not rely on the app's clear:true if it reports an error
       return out_('ok');
     }
     if (p.a === 'snooze') {
@@ -532,6 +533,7 @@ function handle_(e) {
       var rec = loadRec_(key);
       if (!rec) return out_('ok');
       saveRec_(key, applySnooze(rec, Date.now(), m));
+      clearNotification_(key);
       return out_('ok');
     }
     return out_('bad request');
