@@ -5,8 +5,8 @@
  */
 
 // ===================== Constants (edit, then deploy a NEW VERSION) =====================
-var CAL_HIGH_NAME = 'High priority';     // overridable with script property CAL_HIGH
-var CAL_NORMAL_NAME = 'Normal priority'; // overridable with script property CAL_NORMAL
+var CAL_HIGH_NAME = 'High';              // overridable with script property CAL_HIGH
+var CAL_NORMAL_NAME = 'Normal'; // overridable with script property CAL_NORMAL
 
 var TZ = 'Europe/Paris';
 var LOOKBACK_DAYS = 14;
