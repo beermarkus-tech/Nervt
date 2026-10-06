@@ -409,6 +409,7 @@ function ntfyPost_(payload) {
     payload: JSON.stringify(payload), muteHttpExceptions: true
   });
   var code = res.getResponseCode();
+  if (code < 200 || code >= 300) console.error('ntfy rejected: HTTP ' + code + ' ' + res.getContentText());
   return code >= 200 && code < 300;
 }
 
@@ -422,9 +423,9 @@ function buildPayload_(key, rec) {
     priority: priorityFor(rec.cal, step),
     tags: ['alarm_clock'],
     actions: [
-      { action: 'http', label: 'Done', url: actionUrl_('done', rec), method: 'GET', clear: true },
-      { action: 'http', label: '+30 min', url: actionUrl_('snooze', rec, '&m=30'), method: 'GET', clear: true },
-      { action: 'http', label: '+2 h', url: actionUrl_('snooze', rec, '&m=120'), method: 'GET', clear: true }
+      { action: 'http', label: 'Done', url: actionUrl_('done', rec), method: 'POST', clear: true },
+      { action: 'http', label: '+30 min', url: actionUrl_('snooze', rec, '&m=30'), method: 'POST', clear: true },
+      { action: 'http', label: '+2 h', url: actionUrl_('snooze', rec, '&m=120'), method: 'POST', clear: true }
     ]
   };
 }
