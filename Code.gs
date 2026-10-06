@@ -597,3 +597,22 @@ function pingNtfy() {
     }
   });
 }
+
+/** Diagnostic: tries several ways of publishing to ntfy and logs each result. */
+function testPublish() {
+  var topic = prop_('NTFY_TOPIC');
+  var tries = [
+    ['root JSON, trailing slash', 'https://ntfy.sh/', { contentType: 'application/json', payload: JSON.stringify({ topic: topic, message: 'test 1 (root JSON)' }) }],
+    ['root JSON, no slash', 'https://ntfy.sh', { contentType: 'application/json', payload: JSON.stringify({ topic: topic, message: 'test 2 (root JSON no slash)' }) }],
+    ['topic URL, plain text', 'https://ntfy.sh/' + encodeURIComponent(topic), { contentType: 'text/plain', payload: 'test 3 (topic URL)' }]
+  ];
+  tries.forEach(function (t) {
+    try {
+      var opts = { method: 'post', muteHttpExceptions: true, contentType: t[2].contentType, payload: t[2].payload };
+      var r = UrlFetchApp.fetch(t[1], opts);
+      console.log(t[0] + ' -> HTTP ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 100));
+    } catch (e) {
+      console.log(t[0] + ' -> ' + e);
+    }
+  });
+}
