@@ -585,3 +585,15 @@ function sendTestNag() {
   if (!sendNag_(key, rec, Date.now())) throw new Error('ntfy send failed');
   console.log('Test nag sent. Event created in the Normal calendar; Done deletes it.');
 }
+
+/** Diagnostic: can Apps Script reach ntfy.sh at all? Run from the editor and read the log. */
+function pingNtfy() {
+  ['https://ntfy.sh/v1/health', 'https://www.google.com/'].forEach(function (u) {
+    try {
+      var r = UrlFetchApp.fetch(u, { muteHttpExceptions: true });
+      console.log(u + ' -> HTTP ' + r.getResponseCode() + ' ' + r.getContentText().slice(0, 80));
+    } catch (e) {
+      console.log(u + ' -> ' + e);
+    }
+  });
+}
