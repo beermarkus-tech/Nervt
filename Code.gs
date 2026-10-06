@@ -404,13 +404,24 @@ function actionUrl_(a, rec, extra) {
 }
 
 function ntfyPost_(payload) {
-  var res = UrlFetchApp.fetch(NTFY_URL, {
-    method: 'post', contentType: 'application/json',
-    payload: JSON.stringify(payload), muteHttpExceptions: true
-  });
-  var code = res.getResponseCode();
-  if (code < 200 || code >= 300) console.error('ntfy rejected: HTTP ' + code + ' ' + res.getContentText());
-  return code >= 200 && code < 300;
+  var lastErr = '';
+  for (var attempt = 1; attempt <= 3; attempt++) {
+    try {
+      var res = UrlFetchApp.fetch(NTFY_URL, {
+        method: 'post', contentType: 'application/json',
+        payload: JSON.stringify(payload), muteHttpExceptions: true
+      });
+      var code = res.getResponseCode();
+      if (code >= 200 && code < 300) return true;
+      lastErr = 'HTTP ' + code + ' ' + res.getContentText();
+      if (code >= 400 && code < 500 && code !== 429) break;   // our request is wrong, retrying will not help
+    } catch (e) {
+      lastErr = String(e);   // e.g. "Address unavailable": transient on Google's side
+    }
+    if (attempt < 3) Utilities.sleep(2000);
+  }
+  console.error('ntfy send failed: ' + lastErr);
+  return false;
 }
 
 function buildPayload_(key, rec) {
