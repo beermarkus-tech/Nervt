@@ -309,6 +309,7 @@ function dryRun() {
 
 function runTick_(now, dry) {
   requireProps_();
+  ntfyFailedThisRun_ = false;
   var seen = {};        // record keys seen in successfully read calendars
   var okCals = {};      // calendars read successfully
   var open = [];
@@ -403,24 +404,23 @@ function actionUrl_(a, rec, extra) {
     '&k=' + encodeURIComponent(prop_('SECRET'));
 }
 
+var ntfyFailedThisRun_ = false;
+
+/** One attempt per run. A hung connection costs ~50 s, so after one exception skip all further sends this run; the next run retries. */
 function ntfyPost_(payload) {
-  var lastErr = '';
-  for (var attempt = 1; attempt <= 3; attempt++) {
-    try {
-      var res = UrlFetchApp.fetch(NTFY_URL, {
-        method: 'post', contentType: 'application/json',
-        payload: JSON.stringify(payload), muteHttpExceptions: true
-      });
-      var code = res.getResponseCode();
-      if (code >= 200 && code < 300) return true;
-      lastErr = 'HTTP ' + code + ' ' + res.getContentText();
-      if (code >= 400 && code < 500 && code !== 429) break;   // our request is wrong, retrying will not help
-    } catch (e) {
-      lastErr = String(e);   // e.g. "Address unavailable": transient on Google's side
-    }
-    if (attempt < 3) Utilities.sleep(2000);
+  if (ntfyFailedThisRun_) return false;
+  try {
+    var res = UrlFetchApp.fetch(NTFY_URL, {
+      method: 'post', contentType: 'application/json',
+      payload: JSON.stringify(payload), muteHttpExceptions: true
+    });
+    var code = res.getResponseCode();
+    if (code >= 200 && code < 300) return true;
+    console.error('ntfy rejected: HTTP ' + code + ' ' + res.getContentText());
+  } catch (e) {
+    ntfyFailedThisRun_ = true;
+    console.error('ntfy send failed: ' + e);
   }
-  console.error('ntfy send failed: ' + lastErr);
   return false;
 }
 
